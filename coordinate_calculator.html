@@ -49,7 +49,10 @@ var translations = {
         labelUhel: "První úhel:",
         labelAng: "Úhel mezi dírami:",
         btnCalc: "Spočítat",
-        alertNonInteger: "POZOR!\nPočet děr není celé číslo!\nChcete zadat nový úhel?"
+        alertNonInteger: "POZOR!\nPočet děr není celé číslo!\nChcete zadat nový úhel?",
+        resultRadius: "Poloměr",
+        resultPocet: "Počet děr",
+        resultDira: "Díra"
     },
     en: {
         title: "Coordinate Calculator — SVG version",
@@ -57,7 +60,10 @@ var translations = {
         labelUhel: "First angle:",
         labelAng: "Angle between holes:",
         btnCalc: "Calculate",
-        alertNonInteger: "WARNING!\nNumber of holes is not an integer!\nDo you want to enter a new angle?"
+        alertNonInteger: "WARNING!\nNumber of holes is not an integer!\nDo you want to enter a new angle?",
+        resultRadius: "Radius",
+        resultPocet: "Number of holes",
+        resultDira: "Hole"
     },
     de: {
         title: "Koordinaten-Rechner — SVG Version",
@@ -65,7 +71,10 @@ var translations = {
         labelUhel: "Erster Winkel:",
         labelAng: "Winkel zwischen Löchern:",
         btnCalc: "Berechnen",
-        alertNonInteger: "ACHTUNG!\nDie Anzahl der Löcher ist keine ganze Zahl!\nMöchten Sie einen neuen Winkel eingeben?"
+        alertNonInteger: "ACHTUNG!\nDie Anzahl der Löcher ist keine ganze Zahl!\nMöchten Sie einen neuen Winkel eingeben?",
+        resultRadius: "Radius",
+        resultPocet: "Anzahl Löcher",
+        resultDira: "Loch"
     },
     ru: {
         title: "Калькулятор координат — SVG версия",
@@ -73,7 +82,10 @@ var translations = {
         labelUhel: "Первый угол:",
         labelAng: "Угол между отверстиями:",
         btnCalc: "Вычислить",
-        alertNonInteger: "ВНИМАНИЕ!\nКоличество отверстий не является целым числом!\nХотите ввести новый угол?"
+        alertNonInteger: "ВНИМАНИЕ!\nКоличество отверстий не является целым числом!\nХотите ввести новый угол?",
+        resultRadius: "Радиус",
+        resultPocet: "Количество отверстий",
+        resultDira: "Отверстие"
     }
 };
 
@@ -187,12 +199,14 @@ function calculate() {
     }
 
     // ===== Вывод координат =====
-    var resultText = "Radius = "+radius+"\nPočet děr = "+pocet+"\n\n";
+    var resultText = translations[lang].resultRadius + " = "+radius+"\n" +
+                     translations[lang].resultPocet + " = "+pocet+"\n\n";
+
     for (var i=0; i<pocet; i++) {
         var q = uhel + i*ang;
         var x = Math.round(radius*Math.sin(q*Math.PI/180)*100)/100;
         var y = Math.round(radius*Math.cos(q*Math.PI/180)*100)/100;
-        resultText += "Díra "+(i+1)+": X="+x+"   Y="+y+"\n";
+        resultText += translations[lang].resultDira + " "+(i+1)+": X="+x+"   Y="+y+"\n";
     }
     document.getElementById("result").innerText = resultText;
 }
