@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Aplikace na určení souřadnic — SVG verze</title>
+</head>
+<body>
+
+<h2 id="title">Aplikace na určení souřadnic — SVG verze</h2>
+
+<!-- Выбор языка -->
+<p>
+    <label for="langSelect">Jazyk / Language / Sprache / Язык:</label>
+    <select id="langSelect" onchange="updateLanguage()">
+        <option value="cz" selected>Čeština</option>
+        <option value="en">English</option>
+        <option value="de">Deutsch</option>
+        <option value="ru">Русский</option>
+    </select>
+</p>
+
+<p>
+    <label id="labelDiameter">Diameter:</label>
+    <input id="diameter">
+</p>
+
+<p>
+    <label id="labelUhel">První úhel:</label>
+    <input id="uhel">
+</p>
+
+<p>
+    <label id="labelAng">Úhel mezi dírami:</label>
+    <input id="ang">
+</p>
+
+<button id="btnCalc" onclick="calculate()">Spočítat</button>
+
+<pre id="result"></pre>
+<svg id="svgCanvas" width="400" height="400" style="border:1px solid black;"></svg>
+
+
+<script>
+// ===== Переводы =====
+var translations = {
+    cz: {
+        title: "Aplikace na určení souřadnic — SVG verze",
+        labelDiameter: "Průměr:",
+        labelUhel: "První úhel:",
+        labelAng: "Úhel mezi dírami:",
+        btnCalc: "Spočítat",
+        alertNonInteger: "POZOR!\nPočet děr není celé číslo!\nChcete zadat nový úhel?"
+    },
+    en: {
+        title: "Coordinate Calculator — SVG version",
+        labelDiameter: "Diameter:",
+        labelUhel: "First angle:",
+        labelAng: "Angle between holes:",
+        btnCalc: "Calculate",
+        alertNonInteger: "WARNING!\nNumber of holes is not an integer!\nDo you want to enter a new angle?"
+    },
+    de: {
+        title: "Koordinaten-Rechner — SVG Version",
+        labelDiameter: "Durchmesser:",
+        labelUhel: "Erster Winkel:",
+        labelAng: "Winkel zwischen Löchern:",
+        btnCalc: "Berechnen",
+        alertNonInteger: "ACHTUNG!\nDie Anzahl der Löcher ist keine ganze Zahl!\nMöchten Sie einen neuen Winkel eingeben?"
+    },
+    ru: {
+        title: "Калькулятор координат — SVG версия",
+        labelDiameter: "Диаметр:",
+        labelUhel: "Первый угол:",
+        labelAng: "Угол между отверстиями:",
+        btnCalc: "Вычислить",
+        alertNonInteger: "ВНИМАНИЕ!\nКоличество отверстий не является целым числом!\nХотите ввести новый угол?"
+    }
+};
+
+// ===== Функция обновления языка =====
+function updateLanguage() {
+    var lang = document.getElementById("langSelect").value;
+    document.getElementById("title").innerText = translations[lang].title;
+    document.getElementById("labelDiameter").innerText = translations[lang].labelDiameter;
+    document.getElementById("labelUhel").innerText = translations[lang].labelUhel;
+    document.getElementById("labelAng").innerText = translations[lang].labelAng;
+    document.getElementById("btnCalc").innerText = translations[lang].btnCalc;
+}
+
+// ===== Основная функция calculate() =====
+function calculate() {
+    var lang = document.getElementById("langSelect").value;
+
+    var diameter = parseFloat(document.getElementById("diameter").value.replace(",", "."));
+    var uhel = parseFloat(document.getElementById("uhel").value.replace(",", "."));
+    var ang = parseFloat(document.getElementById("ang").value.replace(",", "."));
+
+    var radius = Math.round((diameter / 2) * 1000)/1000;
+    var pocet = Math.floor(360 / ang);
+
+    if (360 % ang !== 0) {
+        if (confirm(translations[lang].alertNonInteger)) { return; }
+    }
+
+    var svg = document.getElementById("svgCanvas");
+    while (svg.firstChild) svg.removeChild(svg);
+
+    var centerX = 200;
+    var centerY = 200;
+    var scale = 150 / radius;
+    var R = radius * scale;
+
+    // ===== Окружность =====
+    var circle = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    circle.setAttribute("cx", centerX);
+    circle.setAttribute("cy", centerY);
+    circle.setAttribute("r", R);
+    circle.setAttribute("stroke", "black");
+    circle.setAttribute("fill", "none");
+    svg.appendChild(circle);
+
+    // ===== Оси =====
+    var lineX = document.createElementNS("http://www.w3.org/2000/svg","line");
+    lineX.setAttribute("x1", 0); lineX.setAttribute("y1", centerY);
+    lineX.setAttribute("x2", 400); lineX.setAttribute("y2", centerY);
+    lineX.setAttribute("stroke", "black"); svg.appendChild(lineX);
+
+    var lineY = document.createElementNS("http://www.w3.org/2000/svg","line");
+    lineY.setAttribute("x1", centerX); lineY.setAttribute("y1", 0);
+    lineY.setAttribute("x2", centerX); lineY.setAttribute("y2", 400);
+    lineY.setAttribute("stroke", "black"); svg.appendChild(lineY);
+
+    // ===== Функция для координат =====
+    function getCoord(angleDeg, r) {
+        var rad = (angleDeg-90)*Math.PI/180;
+        return {x:centerX + Math.cos(rad)*r, y:centerY + Math.sin(rad)*r};
+    }
+
+    // ===== Линии, отверстия и номера =====
+    var points = [];
+    for (var i=0; i<pocet; i++) {
+        var q = uhel + i*ang;
+        var pt = getCoord(q, R);
+        points.push(pt);
+
+        var line = document.createElementNS("http://www.w3.org/2000/svg","line");
+        line.setAttribute("x1", centerX); line.setAttribute("y1", centerY);
+        line.setAttribute("x2", pt.x); line.setAttribute("y2", pt.y);
+        line.setAttribute("stroke", "red"); svg.appendChild(line);
+
+        var hole = document.createElementNS("http://www.w3.org/2000/svg","circle");
+        hole.setAttribute("cx", pt.x); hole.setAttribute("cy", pt.y);
+        hole.setAttribute("r", 4); hole.setAttribute("fill", "blue"); svg.appendChild(hole);
+
+        var textHole = document.createElementNS("http://www.w3.org/2000/svg","text");
+        textHole.setAttribute("x", pt.x + 5); textHole.setAttribute("y", pt.y - 5);
+        textHole.textContent = i+1; svg.appendChild(textHole);
+    }
+
+    // ===== Дуги и подписи =====
+    var arcRadius = R*0.7;
+
+    if (uhel !== 0 && points.length>0) {
+        var start1 = getCoord(0, arcRadius);
+        var end1 = getCoord(uhel, arcRadius);
+        var largeArcFlag = (uhel>180)?1:0;
+        var d1 = "M"+start1.x+","+start1.y+" A"+arcRadius+","+arcRadius+" 0 "+largeArcFlag+",1 "+end1.x+","+end1.y;
+        var arc1 = document.createElementNS("http://www.w3.org/2000/svg","path");
+        arc1.setAttribute("d", d1); arc1.setAttribute("stroke","green"); arc1.setAttribute("fill","none"); svg.appendChild(arc1);
+
+        var mid1x = (start1.x+end1.x)/2; var mid1y = (start1.y+end1.y)/2;
+        var text1 = document.createElementNS("http://www.w3.org/2000/svg","text");
+        text1.setAttribute("x", mid1x+5); text1.setAttribute("y", mid1y-5); text1.textContent = uhel+"°";
+        svg.appendChild(text1);
+    }
+
+    if (points.length>1) {
+        var start2 = points[0]; var end2 = points[1];
+        var d2 = "M"+start2.x+","+start2.y+" A"+arcRadius+","+arcRadius+" 0 0,1 "+end2.x+","+end2.y;
+        var arc2 = document.createElementNS("http://www.w3.org/2000/svg","path");
+        arc2.setAttribute("d", d2); arc2.setAttribute("stroke","orange"); arc2.setAttribute("fill","none"); svg.appendChild(arc2);
+
+        var mid2x = (start2.x+end2.x)/2; var mid2y = (start2.y+end2.y)/2;
+        var text2 = document.createElementNS("http://www.w3.org/2000/svg","text");
+        text2.setAttribute("x", mid2x+5); text2.setAttribute("y", mid2y-5);
+        text2.textContent = ang+"° x"+pocet; svg.appendChild(text2);
+    }
+
+    // ===== Вывод координат =====
+    var resultText = "Radius = "+radius+"\nPočet děr = "+pocet+"\n\n";
+    for (var i=0; i<pocet; i++) {
+        var q = uhel + i*ang;
+        var x = Math.round(radius*Math.sin(q*Math.PI/180)*100)/100;
+        var y = Math.round(radius*Math.cos(q*Math.PI/180)*100)/100;
+        resultText += "Díra "+(i+1)+": X="+x+"   Y="+y+"\n";
+    }
+    document.getElementById("result").innerText = resultText;
+}
+</script>
+
+</body>
+</html>
